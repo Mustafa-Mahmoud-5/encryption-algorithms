@@ -1,4 +1,6 @@
-package com.encryption.strategies;
+package com.encryption.context;
+
+import com.encryption.strategies.EncryptionStrategy;
 
 public class EncryptionContext {
 

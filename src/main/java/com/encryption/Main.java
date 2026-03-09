@@ -1,12 +1,13 @@
 package com.encryption;
 
-
+import com.encryption.context.EncryptionContext;
+import com.encryption.enums.CipherType;
 import com.encryption.factories.EncryptionFactory;
 import com.encryption.strategies.*;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
@@ -17,9 +18,12 @@ public class Main {
 
         try {
             System.out.println("enter the file path");
-            String path = keyboard.nextLine();
+            String inputPath = keyboard.nextLine();
 
-            String text = Files.readString(Paths.get(path));
+            System.out.println("Enter output file path:");
+            String outputPath = keyboard.nextLine();
+
+            String text = Files.readString(Paths.get(inputPath));
             System.out.println("Choose function type:");
             System.out.println("1- encryption");
             System.out.println("2- decryption");
@@ -27,6 +31,7 @@ public class Main {
             int function = keyboard.nextInt();
             keyboard.nextLine();
 
+            Path path = Paths.get(outputPath);
             if (function == 1) // encryption logic
             {
                 System.out.println("Choose encryption type:");
@@ -37,8 +42,14 @@ public class Main {
                 int strategyChoise = keyboard.nextInt();
                 keyboard.nextLine();
 
+                CipherType cipherType = CipherType.fromChoice(strategyChoise);
+
+                System.out.println("Enter key : ");
+                String key = keyboard.nextLine();
+
+
                 // encryption strategy
-                EncryptionStrategy strategy = EncryptionFactory.createStrategy(strategyChoise);
+                EncryptionStrategy strategy = EncryptionFactory.createStrategy(cipherType , key);
 
                 // Context which use the strategy
                 EncryptionContext context = new EncryptionContext(strategy);
@@ -47,22 +58,26 @@ public class Main {
                 String encryptedText = context.encrypt(text);
 
                 //style for decryption facility
-                encryptedText = "METHOD:"+strategy.getName()+encryptedText;
+                encryptedText = "METHOD:"+strategy.getName()+"\n"+encryptedText;
 
-                String outPath = path.replace(".txt", "_encrypted.txt");
-                Files.writeString(Paths.get(outPath), encryptedText);
-                System.out.println("encrypted file saved to : " + outPath);
+                Files.writeString(path, encryptedText);
+                System.out.println("Encrypted file saved to: " + outputPath);
             }
             else if(function == 2)
             {
-                String[] lines = text.split("\n",2);
+                String[] lines = text.split("\n",2); // for my program only
                 String methodLine = lines[0];
                 String encryptedText = lines[1];
 
                 String method = methodLine.split(":")[1];
 
+                CipherType cipherType = CipherType.valueOf(method);
+
+                System.out.print("enter key : ");
+                String key = keyboard.nextLine();
+
                 // strategy
-                EncryptionStrategy decryptionStrategy = EncryptionFactory.createStrategy(method);
+                EncryptionStrategy decryptionStrategy = EncryptionFactory.createStrategy(cipherType,key);
 
                 // Context which use the strategy
                 EncryptionContext decryptionContext = new EncryptionContext(decryptionStrategy);
@@ -70,15 +85,17 @@ public class Main {
                 // decryption
                 String decryptedText = decryptionContext.decrypt(encryptedText);
 
-                String outPath = path.replace("_encrypted.txt", "_decrypted.txt");
-                Files.writeString(Paths.get(outPath), decryptedText);
-                System.out.println("decrypted file saved to : " + outPath);
+                Files.writeString(path, decryptedText);
+                System.out.println("Decrypted file saved to: " + outputPath);
 
             }
             else {System.out.println("Invalid function choice!!");}
 
         } catch (IOException e) {
             System.out.println("Error reading File!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid cipher type or key! " + e.getMessage());
         }
     }
+
 }

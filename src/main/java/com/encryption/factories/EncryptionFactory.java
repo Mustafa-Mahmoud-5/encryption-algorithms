@@ -1,24 +1,15 @@
 package com.encryption.factories;
+import com.encryption.enums.CipherType;
 import com.encryption.strategies.*;
 
 public class EncryptionFactory {
-    public static EncryptionStrategy createStrategy(int choice)
+    public static EncryptionStrategy createStrategy(CipherType type, String key)
     {
-        return switch (choice) {
-            case 1 -> new MonoalphabeticCipher();
-            case 2 -> new VigenereCipher();
-            case 3 -> new TranspositionCipher();
-            default -> throw new IllegalArgumentException("Invalid encryption Type");
+        return switch (type) {
+            case MONO -> new MonoalphabeticCipher(key);
+            case VIGENERE -> new VigenereCipher(key);
+            case TRANS -> new TranspositionCipher(key);
+            default -> throw new IllegalArgumentException("Invalid  Type");
         };
     }
-    public static EncryptionStrategy createStrategy(String method)
-    {
-        return switch (method) {
-            case "MONO" -> new MonoalphabeticCipher();
-            case "VIGENERE" -> new VigenereCipher();
-            case "TRANS" -> new TranspositionCipher();
-            default -> throw new IllegalArgumentException("Unknown encrypted text");
-        };
-    }
-
 }
