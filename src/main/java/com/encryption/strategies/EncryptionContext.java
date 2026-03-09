@@ -24,4 +24,9 @@ public class EncryptionContext {
     {
         return encryptionStrategy.encrypt(text);
     }
+    public String decrypt(String decryptedText)
+    {
+        return encryptionStrategy.decrypt(decryptedText);
+    }
+
 }
