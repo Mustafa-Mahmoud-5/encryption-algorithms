@@ -49,12 +49,37 @@ public class DESAlgorithm extends CipherAlgorithm{
     @Override
     public String decrypt(String cipher) throws Exception {
         validateText(cipher);
-        return "";
+
+        cipher = Permutator.permutate(PermutationMatrices.INITIAL_PERMUTATION, cipher);
+        System.out.println("Initial Permutation: " + cipher);
+        String L = cipher.substring(0, 32);
+        String R = cipher.substring(32);
+
+        for(int i = rounds; i >= 1; i--) {
+            System.out.println("========Round " + (i) + "=============");
+            System.out.println("L:" + L);
+            System.out.println("R:" + R);
+
+            String rPrev = R;
+
+            String roundKey = this.key.getRoundKey(i);
+            R = BitsUtils.xorStrings(L, manglerFunction.apply(R, roundKey));
+
+            L = rPrev;
+            System.out.println("========Round " + (i) + " end=============");
+            System.out.println("L:" + L);
+            System.out.println("R:" + R);
+        }
+        String swappedText = R+L;
+        String res = Permutator.permutate(PermutationMatrices.INVERSE_INITIAL_PERMUTATION, swappedText);
+        System.out.println("Final Permutation: " + res);
+        return res;
     }
 
 
     @Override
     protected void validateText(String text) throws Exception {
+        System.out.println("equal size? " + (bitSize == text.length()));
         if(text.length() != bitSize) {
             throw new Exception("invalid text/key size, must be 64 bits");
         }
@@ -76,6 +101,9 @@ public class DESAlgorithm extends CipherAlgorithm{
         String expectedCipher = "1000010111101000000100110101010000001111000010101011010000000101";
         System.out.println("cipher");
         System.out.println(cipher);
-        System.out.println("Passed: " + (cipher.equals(expectedCipher)));
+        System.out.println("Encryption Passed: " + (cipher.equals(expectedCipher)));
+
+        String decyphered = des.decrypt(cipher);
+        System.out.println("Decryption Passed: " + decyphered.equals(text));
     }
 }
