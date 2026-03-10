@@ -9,15 +9,19 @@ public class ManglerFunction {
     public String apply(String text, String roundKey) {
         // 1- expansion to 48 bits
         text = Permutator.permutate(PermutationMatrices.EXPANSION_TABLE, text);
+        System.out.println("Expanded: " + text + " " + text.length());
 
         // 2- XOR with round key
         text = BitsUtils.xorStrings(text, roundKey);
+        System.out.println("XOR With Key: " + text + " " + text.length());
 
         // 3- get back to 32 bits
         text = applySBoxesKeySubstitution(text);
+        System.out.println("SBoxed: " + text + " " + text.length());
 
         // 4- Transposition P-box
         text = Permutator.permutate(PermutationMatrices.P_BOX, text);
+        System.out.println("PBox Transposition: " + text + " " + text.length());
         // return res
 
         return text;
@@ -36,10 +40,15 @@ public class ManglerFunction {
             int row = BitsUtils.bitToInt(rowBit);
             int col = BitsUtils.bitToInt(colBit);
 
-            int sBoxResInt = SBoxes.S_BOXES[i][row][col];
-            String SBoxRes= BitsUtils.intToBit(sBoxResInt);
 
-            res.append(SBoxRes);
+            int sBoxResInt = SBoxes.S_BOXES[i][row][col];
+            String sBoxRes= BitsUtils.intToBit(sBoxResInt);
+
+            while(sBoxRes.length() < 4) {
+                sBoxRes = "0" + sBoxRes;
+            }
+
+            res.append(sBoxRes);
             p+=6;
         }
         return res.toString();

@@ -7,31 +7,43 @@ import com.encryption.des.utils.Permutator;
 public class DESAlgorithm extends CipherAlgorithm{
     ManglerFunction manglerFunction = new ManglerFunction();
 
-    public DESAlgorithm() {
+    public DESAlgorithm(String key) throws Exception {
         this.bitSize = 64;
         this.keySize = 64;
         this.rounds = 16;
+        this.setKey(key);
     }
+
 
     @Override
     public String encrypt(String text) throws Exception {
         validateText(text);
 
         text = Permutator.permutate(PermutationMatrices.INITIAL_PERMUTATION, text);
-
+        System.out.println("Initial Permutation: " + text);
         String L = text.substring(0, 32);
         String R = text.substring(32);
 
         for(int i = 1; i <= rounds; i++) {
+            System.out.println("========Round " + i + "=============");
+            System.out.println("L:" + L);
+            System.out.println("R:" + R);
+
+
             String rPrev = R;
 
-            String roundKey = BitsUtils.generateRandom64BitString();
+            String roundKey = this.key.getRoundKey(i);
             R = BitsUtils.xorStrings(L, manglerFunction.apply(R, roundKey));
 
             L = rPrev;
+            System.out.println("========Round " + i + " end=============");
+            System.out.println("L:" + L);
+            System.out.println("R:" + R);
         }
         String swappedText = R+L;
-        return Permutator.permutate(PermutationMatrices.INVERSE_INITIAL_PERMUTATION, swappedText);
+        String res = Permutator.permutate(PermutationMatrices.INVERSE_INITIAL_PERMUTATION, swappedText);
+        System.out.println("Final Permutation: " + res);
+        return res;
     }
 
     @Override
@@ -44,14 +56,26 @@ public class DESAlgorithm extends CipherAlgorithm{
     @Override
     protected void validateText(String text) throws Exception {
         if(text.length() != bitSize) {
-            throw new Exception("invalid text size, must be 64 bits");
+            throw new Exception("invalid text/key size, must be 64 bits");
         }
 
 
         for(int i = 0; i < text.length(); i++) {
-            if(text.charAt(i) != '0' || text.charAt(i) != '1') {
+            if(text.charAt(i) != '0' && text.charAt(i) != '1') {
+                System.out.println("Wrong Character Detected: " + text.charAt(i));
                 throw new Exception("invalid character. only accepts bit string");
             }
         }
+    }
+
+
+    public static void main(String[] args) throws Exception {
+        CipherAlgorithm des = new DESAlgorithm("0001001100110100010101110111100110011011101111001101111111110001");
+        String text = "0000000100100011010001010110011110001001101010111100110111101111";
+        String cipher = des.encrypt(text);
+        String expectedCipher = "1000010111101000000100110101010000001111000010101011010000000101";
+        System.out.println("cipher");
+        System.out.println(cipher);
+        System.out.println("Passed: " + (cipher.equals(expectedCipher)));
     }
 }
